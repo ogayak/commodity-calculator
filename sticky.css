@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sticky Table Header Test</title>
+  <style>
+    .table-scroll {
+      max-height: 320px;
+      overflow-y: auto;
+      background: #f9fbfd;
+      border-radius: 7px;
+      margin-bottom: 10px;
+      border: 1px solid #cce1ff;
+    }
+    .table-scroll table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 500px;
+    }
+    .table-scroll thead th {
+      position: sticky;
+      top: 0;
+      background: #f3f7fd;
+      z-index: 2;
+      box-shadow: 0 2px 3px 0 rgba(0,0,0,0.02);
+    }
+    th, td {
+      padding: 10px 7px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      min-width: 90px;
+      background: inherit;
+    }
+  </style>
+</head>
+<body>
+  <h1>Commodity Calculator</h1>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Commodity</th>
+          <th>Price</th>
+          <th>Qty</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Add LOTS of rows to test sticky -->
+        <tr><td>Maize</td><td>100</td><td>10</td><td>1000</td></tr>
+        <tr><td>Rice</td><td>200</td><td>8</td><td>1600</td></tr>
+        <!-- repeat as needed -->
+        <tr><td>Beans</td><td>150</td><td>7</td><td>1050</td></tr>
+        <tr><td>Wheat</td><td>250</td><td>5</td><td>1250</td></tr>
+        <tr><td>Sorghum</td><td>80</td><td>12</td><td>960</td></tr>
+        <tr><td>Groundnut</td><td>180</td><td>6</td><td>1080</td></tr>
+        <tr><td>Yam</td><td>300</td><td>4</td><td>1200</td></tr>
+        <tr><td>Millet</td><td>110</td><td>9</td><td>990</td></tr>
+        <tr><td>Cassava</td><td>90</td><td>14</td><td>1260</td></tr>
+        <tr><td>Soybean</td><td>210</td><td>5</td><td>1050</td></tr>
+        <tr><td>Cocoa</td><td>400</td><td>2</td><td>800</td></tr>
+        <tr><td>Tomato</td><td>120</td><td>11</td><td>1320</td></tr>
+        <tr><td>Onion</td><td>95</td><td>13</td><td>1235</td></tr>
+        <tr><td>Pepper</td><td>105</td><td>10</td><td>1050</td></tr>
+        <tr><td>Palm Oil</td><td>350</td><td>3</td><td>1050</td></tr>
+        <!-- keep going to test scroll -->
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

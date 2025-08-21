@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Commodity Calculator</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="app-header">
+        <span>Smart Commodity Calculator</span>
+    </header>
+    <nav>
+        <a href="index.html" class="active">Calculator</a>
+        <a href="history.html">History</a>
+    </nav>
+    <main class="container">
+        <h1>Commodity Calculator</h1>
+        <form id="add-commodity-form" autocomplete="off">
+            <input type="text" id="commodity-name" placeholder="Commodity Name" required>
+            <input type="number" id="commodity-price" placeholder="Price (₦)" min="0" required>
+            <button type="submit" class="main-btn">Add</button>
+        </form>
+        <!-- Sticky Table Header -->
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Commodity</th>
+                        <th>Price (₦)</th>
+                        <th>Quantity</th>
+                        <th>Total (₦)</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="commodity-table-body"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align:right;"><strong>Grand Total:</strong></td>
+                        <td id="grand-total">0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <!-- Details Card at the bottom -->
+        <div class="details-card">
+            <div class="details-row">
+                <div>
+                    <label for="delivery-date">Delivery Date:</label>
+                    <input type="date" id="delivery-date">
+                </div>
+                <div>
+                    <label for="delivery-location">Delivery Location:</label>
+                    <input type="text" id="delivery-location" placeholder="e.g. Customer Address">
+                </div>
+            </div>
+            <div class="details-row">
+                <label class="paid-switch">
+                    <input type="checkbox" id="paid-in-full">
+                    <span class="slider"></span>
+                    <span class="paid-label">Payment Successful?</span>
+                </label>
+            </div>
+        </div>
+        <div class="actions">
+            <button id="save-btn" type="button" class="main-btn">Save to History</button>
+            <button id="download-btn" type="button" class="main-btn">Download Receipt</button>
+            <button id="clear-btn" type="button" class="main-btn">Clear All</button>
+        </div>
+    </main>
+    <button id="fab" title="Add Commodity">+</button>
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('add-commodity-form');
+            const tableBody = document.getElementById('commodity-table-body');
+            const grandTotal = document.getElementById('grand-total');
+            const saveBtn = document.getElementById('save-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const deliveryDate = document.getElementById('delivery-date');
+            const deliveryLocation = document.getElementById('delivery-location');
+            const paidInFull = document.getElementById('paid-in-full');
+            const fab = document.getElementById('fab');
+
+            let commodities = [];
+
+            function formatNumber(n) {
+                return window.formatNumber(n);
+            }
+
+            function renderTable() {
+                tableBody.innerHTML = '';
+                let grand = 0;
+                commodities.forEach((commodity, index) => {
+                    const row = document.createElement('tr');
+                    // Name
+                    const nameTd = document.createElement('td');
+                    nameTd.textContent = commodity.name;
+                    row.appendChild(nameTd);
+
+                    // Price
+                    const priceTd = document.createElement('td');
+                    const priceInput = document.createElement('input');
+                    priceInput.type = 'number';
+                    priceInput.min = 0;
+                    priceInput.value = commodity.price;
+                    priceInput.className = "quantity-input";
+                    priceInput.addEventListener('change', function() {
+                        const priceNum = Number(this.value);
+                        commodity.price = (!this.value || isNaN(priceNum) || priceNum < 0) ? 0 : priceNum;
+                        renderTable();
+                    });
+                    priceTd.appendChild(priceInput);
+                    row.appendChild(priceTd);
+
+                    // Quantity
+                    const quantityTd = document.createElement('td');
+                    const quantityInput = document.createElement('input');
+                    quantityInput.type = 'number';
+                    quantityInput.min = 0;
+                    quantityInput.value = commodity.quantity;
+                    quantityInput.className = "quantity-input";
+                    quantityInput.addEventListener('change', function() {
+                        const quantityNum = Number(this.value);
+                        commodity.quantity = (!this.value || isNaN(quantityNum) || quantityNum < 0) ? 0 : quantityNum;
+                        renderTable();
+                    });
+                    quantityTd.appendChild(quantityInput);
+                    row.appendChild(quantityTd);
+
+                    // Total
+                    const totalTd = document.createElement('td');
+                    const total = commodity.price * commodity.quantity;
+                    totalTd.textContent = formatNumber(total);
+                    row.appendChild(totalTd);
+
+                    // Remove
+                    const removeTd = document.createElement('td');
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = 'Remove';
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.addEventListener('click', () => {
+                        commodities.splice(index, 1);
+                        renderTable();
+                    });
+                    removeTd.appendChild(removeBtn);
+                    row.appendChild(removeTd);
+
+                    tableBody.appendChild(row);
+                    grand += total;
+                });
+                grandTotal.textContent = formatNumber(grand);
+            }
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('commodity-name').value.trim();
+                const priceNum = Number(document.getElementById('commodity-price').value);
+                if (!name || isNaN(priceNum) || priceNum < 0) {
+                    alert("Please enter a valid commodity name and price.");
+                    return;
+                }
+                commodities.push({ name, price: priceNum, quantity: 0 });
+                renderTable();
+                form.reset();
+            });
+
+            fab.addEventListener('click', () => {
+                document.getElementById('commodity-name').focus();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            saveBtn.addEventListener('click', () => {
+                if (commodities.length === 0) {
+                    alert("Nothing to save.");
+                    return;
+                }
+                const now = new Date();
+                const historyEntry = {
+                    id: Date.now(),
+                    timestamp: now.toLocaleString(),
+                    deliveryDate: deliveryDate.value,
+                    deliveryLocation: deliveryLocation.value,
+                    paidInFull: paidInFull.checked,
+                    commodities: JSON.parse(JSON.stringify(commodities))
+                };
+                window.saveToHistory(historyEntry);
+                commodities = [];
+                renderTable();
+                alert('Calculation saved to history!');
+            });
+
+            downloadBtn.addEventListener('click', () => {
+                if (commodities.length === 0) {
+                    alert("No commodities to print!");
+                    return;
+                }
+                window.printCustomReceipt(
+                    commodities,
+                    undefined,
+                    deliveryDate.value,
+                    deliveryLocation.value,
+                    paidInFull.checked
+                );
+            });
+
+            clearBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear all commodities?')) {
+                    commodities = [];
+                    renderTable();
+                }
+            });
+
+            renderTable();
+        });
+
+        // PWA Install prompt
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js');
+            });
+        }
+    </script>
+</body>
+</html>

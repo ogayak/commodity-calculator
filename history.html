@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculation History</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <header class="app-header">
+        <span>Smart Commodity Calculator</span>
+    </header>
+    <nav>
+        <a href="index.html">Calculator</a>
+        <a href="history.html" class="active">History</a>
+    </nav>
+    <main class="container">
+        <h1>Calculation History</h1>
+        <input id="search-history" type="text" placeholder="Search by commodity, price, quantity, date, location..." class="history-search">
+        <div id="history-list"></div>
+        <div id="receipt-modal" class="side-modal">
+            <div class="side-modal-content" id="receipt-content">
+                <!-- Receipt content will be injected here -->
+            </div>
+        </div>
+    </main>
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const historyList = document.getElementById('history-list');
+            const searchInput = document.getElementById('search-history');
+            const modal = document.getElementById('receipt-modal');
+            const receiptContent = document.getElementById('receipt-content');
+
+            function normalize(str) {
+                return String(str || '').toLowerCase();
+            }
+
+            function entryMatches(entry, query) {
+                const q = normalize(query);
+                if (normalize(entry.timestamp).includes(q)) return true;
+                if (normalize(entry.deliveryLocation).includes(q)) return true;
+                if (normalize(entry.deliveryDate).includes(q)) return true;
+                for (const c of entry.commodities) {
+                    if (
+                        normalize(c.name).includes(q) ||
+                        normalize(c.price).includes(q) ||
+                        normalize(c.quantity).includes(q) ||
+                        normalize((c.price * c.quantity)).includes(q)
+                    ) return true;
+                }
+                return false;
+            }
+
+            function renderHistory(filter = "") {
+                const history = window.getHistory();
+                historyList.innerHTML = '';
+                const show = filter ? history.filter(e => entryMatches(e, filter)) : history;
+                if (show.length === 0) {
+                    historyList.innerHTML = '<div class="no-history">No matching history found.</div>';
+                    return;
+                }
+                show.forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = 'history-record-card';
+                    div.innerHTML = `
+                        <div class="record-main">
+                            <div>
+                                <div class="record-date">${entry.timestamp}</div>
+                                <div class="record-place"><b>Delivery:</b> ${entry.deliveryDate || '-'}, ${entry.deliveryLocation || '-'}</div>
+                                <div class="record-items"><b>Items:</b> ${entry.commodities.length}</div>
+                            </div>
+                            <div class="record-status ${entry.paidInFull ? 'paid' : 'pending'}">
+                                ${entry.paidInFull ? 'Payment Successful' : 'Payment Pending'}
+                            </div>
+                        </div>
+                        <div class="record-actions">
+                            <button class="open-btn main-btn">View</button>
+                            <button class="print-btn main-btn">Print</button>
+                            <button class="delete-btn main-btn">Delete</button>
+                        </div>
+                    `;
+                    div.querySelector('.open-btn').onclick = () => {
+                        showReceipt(entry);
+                    };
+                    div.querySelector('.print-btn').onclick = () => {
+                        window.downloadReceipt(entry.id);
+                    };
+                    div.querySelector('.delete-btn').onclick = () => {
+                        if (confirm('Delete this history entry?')) {
+                            window.deleteHistory(entry.id);
+                            renderHistory(searchInput.value);
+                        }
+                    };
+                    historyList.appendChild(div);
+                });
+            }
+
+            function showReceipt(entry) {
+                const formatNumber = window.formatNumber;
+                let paidHtml = entry.paidInFull
+                  ? `<span class="paid-status success">Payment Successful</span>`
+                  : `<span class="paid-status pending">Payment Pending</span>`;
+                let receiptHtml = `
+                    <div class="receipt-box fine-receipt">
+                        <div class="receipt-header">
+                            <div class="receipt-logo">&#128179;</div>
+                            <div>
+                                <h2>Payment Receipt</h2>
+                                <div class="receipt-meta">Transaction Date: ${entry.timestamp}</div>
+                            </div>
+                        </div>
+                        <div class="receipt-details">
+                            <div><b>Delivery Date:</b> ${entry.deliveryDate || '-'} </div>
+                            <div><b>Delivery Location:</b> ${entry.deliveryLocation || '-'}</div>
+                            <div><b>Status:</b> ${paidHtml}</div>
+                        </div>
+                        <div class="table-wrapper">
+                        <table class="receipt-table">
+                            <thead>
+                            <tr><th>Commodity</th><th>Price (₦)</th><th>Quantity</th><th>Total (₦)</th></tr>
+                            </thead>
+                            <tbody>
+                            ${entry.commodities.map(c => 
+                                `<tr>
+                                    <td>${c.name}</td>
+                                    <td>${formatNumber(c.price)}</td>
+                                    <td>${formatNumber(c.quantity)}</td>
+                                    <td>${formatNumber(c.price * c.quantity)}</td>
+                                </tr>`
+                            ).join('')}
+                            </tbody>
+                        </table>
+                        </div>
+                        <div class="receipt-total">
+                            Grand Total: ₦${formatNumber(entry.commodities.reduce((sum, c) => sum + (c.price * c.quantity), 0))}
+                        </div>
+                        <div class="slideup-actions">
+                            <button onclick="window.downloadReceipt(${entry.id})" class="main-btn">Download/Print Receipt</button>
+                            <button onclick="document.getElementById('receipt-modal').classList.remove('active')" class="main-btn" style="background:#ff4d4d;">Close</button>
+                        </div>
+                    </div>
+                `;
+                receiptContent.innerHTML = receiptHtml;
+                setTimeout(() => modal.classList.add("active"), 10); // Animate in
+            }
+
+            // Side-modal close logic
+            modal.onclick = function(event) {
+                if (event.target === modal) modal.classList.remove("active");
+            }
+
+            searchInput.addEventListener('input', () => {
+                renderHistory(searchInput.value);
+            });
+
+            renderHistory();
+        });
+    </script>
+</body>
+</html>
