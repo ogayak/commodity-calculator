@@ -1,10 +1,13 @@
 {
   "name": "Smart Commodity Calculator",
   "short_name": "CommodityCalc",
+  "description": "A simple calculator with history for commodity price and quantity.",
+  "id": "smart-commodity",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2f54eb",
+  "orientation": "any",
   "icons": [
     {
       "src": "icon-192.png",
@@ -16,5 +19,20 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "640x480",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshot2.png",
+      "sizes": "640x480",
+      "type": "image/png"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
 }
